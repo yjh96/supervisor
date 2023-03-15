@@ -101,8 +101,8 @@ jobs:
           ) > .env_file
 
       - name: Build wheels
-        if: needs.init.outputs.requirements == 'true'
-        uses: yjh96/wheels@2022.10.1
+        if: needs.init.outputs.requirements == 'false'
+        uses: home-assistant/wheels@2022.10.1
         with:
           abi: cp310
           tag: musllinux_1_2
