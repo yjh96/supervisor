@@ -131,47 +131,6 @@ jobs:
             --${{ matrix.arch }} \
             --target /data \
             --generic ${{ needs.init.outputs.version }}
-        env:
-          CAS_API_KEY: ${{ secrets.CAS_TOKEN }}
-
-  codenotary:
-    name: CAS signature
-    needs: init
-    runs-on: ubuntu-latest
-    steps:
-      - name: Checkout the repository
-        if: needs.init.outputs.publish == 'true'
-        uses: actions/checkout@v3.3.0
-        with:
-          fetch-depth: 0
-
-      - name: Set up Python ${{ env.DEFAULT_PYTHON }}
-        if: needs.init.outputs.publish == 'true'
-        uses: actions/setup-python@v4.5.0
-        with:
-          python-version: ${{ env.DEFAULT_PYTHON }}
-
-      - name: Set version
-        if: needs.init.outputs.publish == 'true'
-        uses: yjh96/actions/helpers/version@master
-        with:
-          type: ${{ env.BUILD_TYPE }}
-
-      - name: Install dirhash and calc hash
-        if: needs.init.outputs.publish == 'true'
-        id: dirhash
-        run: |
-          pip3 install dirhash
-          dir_hash="$(dirhash "${{ github.workspace }}/supervisor" -a sha256 --match "*.py")"
-          echo "::set-output name=dirhash::${dir_hash}"
-
-      - name: Signing Source
-        if: needs.init.outputs.publish == 'true'
-        uses: yjh96/actions/helpers/codenotary@master
-        with:
-          source: hash://${{ steps.dirhash.outputs.dirhash }}
-          asset: supervisor-${{ needs.init.outputs.version }}
-          token: ${{ secrets.CAS_TOKEN }}
 
   version:
     name: Update version
@@ -201,7 +160,7 @@ jobs:
   run_supervisor:
     runs-on: ubuntu-latest
     name: Run the Supervisor
-    needs: ["build", "codenotary", "init"]
+    needs: ["build", "init"]
     timeout-minutes: 60
     steps:
       - name: Checkout the repository
